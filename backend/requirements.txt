@@ -1,0 +1,5 @@
+Django==6.0.3
+djangorestframework==3.17.1
+django-cors-headers==4.9.0
+pandas==3.0.2
+pyarrow==23.0.1
