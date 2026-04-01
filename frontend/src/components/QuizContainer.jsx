@@ -1,6 +1,8 @@
 import { useEffect, useReducer, useCallback } from 'react'
 import { fetchQuiz } from '../api'
 import QuestionCard from './QuestionCard'
+import ScoreScreen from './ScoreScreen'
+import LoadingSpinner from './LoadingSpinner'
 
 function init() {
   return { phase: 'loading', questions: [], index: 0, score: 0, error: null }
@@ -46,7 +48,7 @@ export default function QuizContainer({ date }) {
   if (phase === 'loading') {
     return (
       <div className="quiz-wrapper">
-        <p className="status-msg">Loading today&apos;s quiz…</p>
+        <LoadingSpinner />
       </div>
     )
   }
@@ -71,15 +73,7 @@ export default function QuizContainer({ date }) {
   if (phase === 'done') {
     return (
       <div className="quiz-wrapper">
-        <div className="score-screen">
-          <h2 className="score-screen__title">Quiz complete!</h2>
-          <p className="score-screen__score">
-            You scored <strong>{score}</strong> / {questions.length}
-          </p>
-          <button className="btn btn--primary" onClick={load}>
-            Play Again
-          </button>
-        </div>
+        <ScoreScreen score={score} total={questions.length} onPlayAgain={load} />
       </div>
     )
   }
