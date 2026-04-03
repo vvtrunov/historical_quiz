@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Event
+from .models import Event, Player
 
 
 @admin.register(Event)
@@ -13,3 +13,10 @@ class EventAdmin(admin.ModelAdmin):
     @admin.display(description='Description')
     def short_description(self, obj):
         return obj.description[:80]
+
+
+@admin.register(Player)
+class PlayerAdmin(admin.ModelAdmin):
+    list_display = ('name', 'created_at')
+    search_fields = ('name',)
+    readonly_fields = ('token', 'created_at')

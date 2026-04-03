@@ -1,11 +1,28 @@
+import json
 import random
 import re
 
 from django.http import JsonResponse
 from django.views import View
 
-from .models import Event
+from .models import Event, Player
 
+
+# ── Auth helper ───────────────────────────────────────────────────────────────
+
+def get_player_from_request(request):
+    """Return Player for a valid Bearer token, or None."""
+    auth = request.headers.get('Authorization', '')
+    if not auth.startswith('Token '):
+        return None
+    token = auth[6:].strip()
+    try:
+        return Player.objects.get(token=token)
+    except (Player.DoesNotExist, Exception):
+        return None
+
+
+# ── Quiz generation ───────────────────────────────────────────────────────────
 
 def build_quiz(month: int, day: int, n_questions: int = 10):
     today_events = list(Event.objects.filter(month=month, day=day))
@@ -46,6 +63,28 @@ def build_quiz(month: int, day: int, n_questions: int = 10):
             'choices': choices,
         })
     return result
+
+
+# ── Views ─────────────────────────────────────────────────────────────────────
+
+class LoginView(View):
+    """POST /api/auth/login/  body: {"name": "Alice"}
+    Find-or-create a player by name. Returns token + name.
+    """
+    def post(self, request):
+        try:
+            body = json.loads(request.body)
+        except (json.JSONDecodeError, ValueError):
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        name = str(body.get('name', '')).strip()
+        if not name:
+            return JsonResponse({'error': 'Name is required'}, status=400)
+        if len(name) > 50:
+            return JsonResponse({'error': 'Name must be 50 characters or fewer'}, status=400)
+
+        player, _ = Player.objects.get_or_create(name=name)
+        return JsonResponse({'token': str(player.token), 'name': player.name})
 
 
 class QuizView(View):

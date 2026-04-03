@@ -1,3 +1,5 @@
+import uuid
+
 from django.db import models
 
 
@@ -15,3 +17,12 @@ class Event(models.Model):
 
     def __str__(self):
         return f'{self.year}-{self.month:02d}-{self.day:02d}: {self.description[:60]}'
+
+
+class Player(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name

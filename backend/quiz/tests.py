@@ -1,7 +1,9 @@
+import json
+
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import Event
+from .models import Event, Player
 from .views import build_quiz
 
 
@@ -137,3 +139,53 @@ class QuizAPITest(TestCase):
             self.assertEqual(len(q['choices']), 4)
             correct = [c for c in q['choices'] if c['correct']]
             self.assertEqual(len(correct), 1)
+
+
+class LoginAPITest(TestCase):
+    def _post(self, body):
+        return self.client.post(
+            '/api/auth/login/',
+            data=json.dumps(body),
+            content_type='application/json',
+        )
+
+    def test_create_new_player(self):
+        response = self._post({'name': 'Alice'})
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['name'], 'Alice')
+        self.assertIn('token', data)
+        self.assertEqual(Player.objects.count(), 1)
+
+    def test_login_existing_player_returns_same_token(self):
+        r1 = self._post({'name': 'Bob'})
+        r2 = self._post({'name': 'Bob'})
+        self.assertEqual(r1.json()['token'], r2.json()['token'])
+        self.assertEqual(Player.objects.count(), 1)
+
+    def test_empty_name_returns_400(self):
+        response = self._post({'name': ''})
+        self.assertEqual(response.status_code, 400)
+
+    def test_whitespace_only_name_returns_400(self):
+        response = self._post({'name': '   '})
+        self.assertEqual(response.status_code, 400)
+
+    def test_name_too_long_returns_400(self):
+        response = self._post({'name': 'A' * 51})
+        self.assertEqual(response.status_code, 400)
+
+    def test_name_is_trimmed(self):
+        response = self._post({'name': '  Carol  '})
+        self.assertEqual(response.json()['name'], 'Carol')
+
+    def test_invalid_json_returns_400(self):
+        response = self.client.post(
+            '/api/auth/login/', data='not json', content_type='application/json'
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_different_names_create_different_players(self):
+        self._post({'name': 'Dave'})
+        self._post({'name': 'Eve'})
+        self.assertEqual(Player.objects.count(), 2)
