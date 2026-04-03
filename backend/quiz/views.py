@@ -2,10 +2,11 @@ import json
 import random
 import re
 
+from django.db.models import Sum, Count
 from django.http import JsonResponse
 from django.views import View
 
-from .models import Event, Player
+from .models import Event, Player, QuizResult
 
 
 # ── Auth helper ───────────────────────────────────────────────────────────────
@@ -108,3 +109,107 @@ class QuizView(View):
 
         questions = build_quiz(month, day)
         return JsonResponse({'date': date_param, 'questions': questions})
+
+
+class SubmitResultView(View):
+    """POST /api/quiz/submit/  (auth required)
+    body: {"date": "MM-DD", "score": 8, "total": 10}
+    Creates or updates (keeping best score) the player's result for that date.
+    """
+    def post(self, request):
+        player = get_player_from_request(request)
+        if player is None:
+            return JsonResponse({'error': 'Authentication required'}, status=401)
+
+        try:
+            body = json.loads(request.body)
+        except (json.JSONDecodeError, ValueError):
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        date_param = str(body.get('date', ''))
+        if not re.fullmatch(r'\d{2}-\d{2}', date_param):
+            return JsonResponse({'error': 'date must be MM-DD'}, status=400)
+
+        try:
+            score = int(body['score'])
+            total = int(body['total'])
+        except (KeyError, ValueError, TypeError):
+            return JsonResponse({'error': 'score and total are required integers'}, status=400)
+
+        if not (0 <= score <= total) or total <= 0:
+            return JsonResponse({'error': 'Invalid score/total values'}, status=400)
+
+        existing = QuizResult.objects.filter(player=player, date=date_param).first()
+        if existing:
+            # Keep best score
+            if score > existing.score:
+                existing.score = score
+                existing.total = total
+                existing.save(update_fields=['score', 'total'])
+            result = existing
+        else:
+            result = QuizResult.objects.create(
+                player=player, date=date_param, score=score, total=total
+            )
+
+        return JsonResponse({
+            'date': date_param,
+            'score': result.score,
+            'total': result.total,
+        })
+
+
+class LeaderboardView(View):
+    """GET /api/leaderboard/?scope=daily&date=MM-DD
+       GET /api/leaderboard/?scope=alltime
+    """
+    def get(self, request):
+        scope = request.GET.get('scope', '')
+
+        if scope == 'daily':
+            return self._daily(request)
+        elif scope == 'alltime':
+            return self._alltime(request)
+        else:
+            return JsonResponse({'error': 'scope must be daily or alltime'}, status=400)
+
+    def _daily(self, request):
+        date_param = request.GET.get('date', '')
+        if not re.fullmatch(r'\d{2}-\d{2}', date_param):
+            return JsonResponse({'error': 'date must be MM-DD'}, status=400)
+
+        rows = (
+            QuizResult.objects
+            .filter(date=date_param)
+            .select_related('player')
+            .order_by('-score', 'played_at')[:20]
+        )
+        entries = [
+            {
+                'rank': i + 1,
+                'name': r.player.name,
+                'score': r.score,
+                'total': r.total,
+                'played_at': r.played_at.isoformat(),
+            }
+            for i, r in enumerate(rows)
+        ]
+        return JsonResponse({'scope': 'daily', 'date': date_param, 'entries': entries})
+
+    def _alltime(self, request):
+        rows = (
+            QuizResult.objects
+            .values('player__name')
+            .annotate(total_score=Sum('score'), quizzes_played=Count('id'))
+            .order_by('-total_score', 'player__name')[:20]
+        )
+        entries = [
+            {
+                'rank': i + 1,
+                'name': r['player__name'],
+                'total_score': r['total_score'],
+                'quizzes_played': r['quizzes_played'],
+            }
+            for i, r in enumerate(rows)
+        ]
+        return JsonResponse({'scope': 'alltime', 'entries': entries})

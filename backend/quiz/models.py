@@ -26,3 +26,21 @@ class Player(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class QuizResult(models.Model):
+    player = models.ForeignKey(Player, on_delete=models.CASCADE, related_name='results')
+    date = models.CharField(max_length=5)   # MM-DD
+    score = models.PositiveSmallIntegerField()
+    total = models.PositiveSmallIntegerField()
+    played_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        # one result per player per date — enforced in the view (update on re-submit)
+        indexes = [
+            models.Index(fields=['date']),
+            models.Index(fields=['player', 'date']),
+        ]
+
+    def __str__(self):
+        return f'{self.player.name} {self.date}: {self.score}/{self.total}'

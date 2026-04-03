@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Event, Player
+from .models import Event, Player, QuizResult
 
 
 @admin.register(Event)
@@ -20,3 +20,11 @@ class PlayerAdmin(admin.ModelAdmin):
     list_display = ('name', 'created_at')
     search_fields = ('name',)
     readonly_fields = ('token', 'created_at')
+
+
+@admin.register(QuizResult)
+class QuizResultAdmin(admin.ModelAdmin):
+    list_display = ('player', 'date', 'score', 'total', 'played_at')
+    list_filter = ('date',)
+    search_fields = ('player__name',)
+    readonly_fields = ('played_at',)

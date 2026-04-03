@@ -3,7 +3,7 @@ import json
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import Event, Player
+from .models import Event, Player, QuizResult
 from .views import build_quiz
 
 
@@ -189,3 +189,97 @@ class LoginAPITest(TestCase):
         self._post({'name': 'Dave'})
         self._post({'name': 'Eve'})
         self.assertEqual(Player.objects.count(), 2)
+
+
+class SubmitResultAPITest(TestCase):
+    def setUp(self):
+        self.player = Player.objects.create(name='Tester')
+        self.headers = {'HTTP_AUTHORIZATION': f'Token {self.player.token}'}
+
+    def _post(self, body, headers=None):
+        h = headers if headers is not None else self.headers
+        return self.client.post(
+            '/api/quiz/submit/',
+            data=json.dumps(body),
+            content_type='application/json',
+            **h,
+        )
+
+    def test_submit_creates_result(self):
+        response = self._post({'date': '04-05', 'score': 7, 'total': 10})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(QuizResult.objects.count(), 1)
+        r = QuizResult.objects.first()
+        self.assertEqual(r.score, 7)
+
+    def test_resubmit_keeps_best_score(self):
+        self._post({'date': '04-05', 'score': 5, 'total': 10})
+        self._post({'date': '04-05', 'score': 8, 'total': 10})
+        self.assertEqual(QuizResult.objects.count(), 1)
+        self.assertEqual(QuizResult.objects.first().score, 8)
+
+    def test_resubmit_does_not_overwrite_with_lower_score(self):
+        self._post({'date': '04-05', 'score': 8, 'total': 10})
+        self._post({'date': '04-05', 'score': 3, 'total': 10})
+        self.assertEqual(QuizResult.objects.first().score, 8)
+
+    def test_unauthenticated_returns_401(self):
+        response = self._post({'date': '04-05', 'score': 7, 'total': 10}, headers={})
+        self.assertEqual(response.status_code, 401)
+
+    def test_invalid_token_returns_401(self):
+        response = self._post(
+            {'date': '04-05', 'score': 7, 'total': 10},
+            headers={'HTTP_AUTHORIZATION': 'Token bad-token'},
+        )
+        self.assertEqual(response.status_code, 401)
+
+    def test_invalid_date_returns_400(self):
+        response = self._post({'date': '2024-04-05', 'score': 7, 'total': 10})
+        self.assertEqual(response.status_code, 400)
+
+    def test_score_exceeds_total_returns_400(self):
+        response = self._post({'date': '04-05', 'score': 11, 'total': 10})
+        self.assertEqual(response.status_code, 400)
+
+
+class LeaderboardAPITest(TestCase):
+    def setUp(self):
+        self.alice = Player.objects.create(name='Alice')
+        self.bob   = Player.objects.create(name='Bob')
+        QuizResult.objects.create(player=self.alice, date='04-05', score=9, total=10)
+        QuizResult.objects.create(player=self.bob,   date='04-05', score=7, total=10)
+        QuizResult.objects.create(player=self.alice, date='04-06', score=6, total=10)
+
+    def test_daily_leaderboard_ordered_by_score(self):
+        response = self.client.get('/api/leaderboard/?scope=daily&date=04-05')
+        self.assertEqual(response.status_code, 200)
+        entries = response.json()['entries']
+        self.assertEqual(entries[0]['name'], 'Alice')
+        self.assertEqual(entries[0]['rank'], 1)
+        self.assertEqual(entries[1]['name'], 'Bob')
+
+    def test_daily_leaderboard_only_for_given_date(self):
+        response = self.client.get('/api/leaderboard/?scope=daily&date=04-05')
+        self.assertEqual(len(response.json()['entries']), 2)
+
+    def test_alltime_leaderboard_sums_scores(self):
+        response = self.client.get('/api/leaderboard/?scope=alltime')
+        self.assertEqual(response.status_code, 200)
+        entries = response.json()['entries']
+        alice_entry = next(e for e in entries if e['name'] == 'Alice')
+        self.assertEqual(alice_entry['total_score'], 15)
+        self.assertEqual(alice_entry['quizzes_played'], 2)
+
+    def test_alltime_leaderboard_ordered_by_total_score(self):
+        response = self.client.get('/api/leaderboard/?scope=alltime')
+        entries = response.json()['entries']
+        self.assertEqual(entries[0]['name'], 'Alice')
+
+    def test_missing_scope_returns_400(self):
+        response = self.client.get('/api/leaderboard/')
+        self.assertEqual(response.status_code, 400)
+
+    def test_daily_missing_date_returns_400(self):
+        response = self.client.get('/api/leaderboard/?scope=daily')
+        self.assertEqual(response.status_code, 400)
