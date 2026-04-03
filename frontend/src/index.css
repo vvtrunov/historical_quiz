@@ -47,15 +47,80 @@ body {
 #root {
   min-height: 100svh;
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 16px 48px;
+}
+
+/* ── App header (player name bar) ──────────────────────────── */
+.app-header {
+  width: 100%;
+  max-width: 680px;
+  padding: 12px 0;
+  display: flex;
+  justify-content: flex-end;
+}
+.app-header__name {
+  font-size: .9rem;
+  color: var(--text-muted);
+}
+
+/* ── Auth gate ─────────────────────────────────────────────── */
+.auth-gate {
+  display: flex;
+  align-items: center;
   justify-content: center;
-  padding: 24px 16px 48px;
+  min-height: 100svh;
+  width: 100%;
+}
+.auth-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 48px 40px;
+  box-shadow: var(--shadow);
+  text-align: center;
+  width: 100%;
+  max-width: 400px;
+}
+.auth-card__title {
+  font-size: 2rem;
+  margin: 0 0 8px;
+  color: var(--primary);
+}
+.auth-card__subtitle {
+  color: var(--text-muted);
+  margin: 0 0 28px;
+}
+.auth-card__form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.auth-card__input {
+  padding: 10px 14px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 1rem;
+  transition: border-color .15s;
+}
+.auth-card__input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+.auth-card__error {
+  margin: 12px 0 0;
+  color: var(--wrong);
+  font-size: .9rem;
 }
 
 /* ── Layout wrapper ────────────────────────────────────────── */
 .quiz-wrapper {
   width: 100%;
   max-width: 680px;
+  padding-top: 8px;
 }
 
 .quiz-title {

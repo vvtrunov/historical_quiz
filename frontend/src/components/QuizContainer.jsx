@@ -31,15 +31,15 @@ function reducer(state, action) {
   }
 }
 
-export default function QuizContainer({ date }) {
+export default function QuizContainer({ date, player }) {
   const [state, dispatch] = useReducer(reducer, null, init)
 
   const load = useCallback(() => {
     dispatch({ type: 'RESET' })
-    fetchQuiz(date)
+    fetchQuiz(date, player?.token)
       .then(data => dispatch({ type: 'LOADED', questions: data.questions }))
       .catch(err => dispatch({ type: 'ERROR', error: err.message }))
-  }, [date])
+  }, [date, player])
 
   useEffect(() => { load() }, [load])
 

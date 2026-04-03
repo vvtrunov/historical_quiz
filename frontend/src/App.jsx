@@ -1,3 +1,4 @@
+import AuthGate from './components/AuthGate'
 import QuizContainer from './components/QuizContainer'
 
 function getTodayDate() {
@@ -8,5 +9,16 @@ function getTodayDate() {
 }
 
 export default function App() {
-  return <QuizContainer date={getTodayDate()} />
+  return (
+    <AuthGate>
+      {(player) => (
+        <>
+          <header className="app-header">
+            <span className="app-header__name">👤 {player.name}</span>
+          </header>
+          <QuizContainer date={getTodayDate()} player={player} />
+        </>
+      )}
+    </AuthGate>
+  )
 }
