@@ -19,6 +19,7 @@ export default function QuestionCard({ question, index, total, onNext }) {
   }
 
   const correctChoice = question.choices.find(c => c.correct)
+  const yearsAgo = new Date().getFullYear() - question.year
 
   return (
     <div className="question-card">
@@ -30,7 +31,9 @@ export default function QuestionCard({ question, index, total, onNext }) {
       </div>
 
       <p className="question-card__prompt">
-        Which event happened on this day in <strong>{question.year}</strong>?
+        Which event happened on this day{' '}
+        <strong>{yearsAgo} {yearsAgo === 1 ? 'year' : 'years'} ago</strong>{' '}
+        ({question.year})?
       </p>
 
       <div className="question-card__choices">
