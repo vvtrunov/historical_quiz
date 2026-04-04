@@ -4,7 +4,9 @@ import re
 
 from django.db.models import Sum, Count
 from django.http import JsonResponse
+from django.utils.decorators import method_decorator
 from django.views import View
+from django.views.decorators.csrf import csrf_exempt
 
 from .models import Event, Player, QuizResult
 
@@ -68,6 +70,7 @@ def build_quiz(month: int, day: int, n_questions: int = 10):
 
 # ── Views ─────────────────────────────────────────────────────────────────────
 
+@method_decorator(csrf_exempt, name='dispatch')
 class LoginView(View):
     """POST /api/auth/login/  body: {"name": "Alice"}
     Find-or-create a player by name. Returns token + name.
@@ -111,6 +114,7 @@ class QuizView(View):
         return JsonResponse({'date': date_param, 'questions': questions})
 
 
+@method_decorator(csrf_exempt, name='dispatch')
 class SubmitResultView(View):
     """POST /api/quiz/submit/  (auth required)
     body: {"date": "MM-DD", "score": 8, "total": 10}
