@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useCallback } from 'react'
-import { fetchQuiz } from '../api'
+import { fetchQuiz, submitResult } from '../api'
 import QuestionCard from './QuestionCard'
 import ScoreScreen from './ScoreScreen'
 import LoadingSpinner from './LoadingSpinner'
@@ -21,9 +21,11 @@ function reducer(state, action) {
     case 'ADVANCE': {
       const next = state.index + 1
       if (next >= state.questions.length)
-        return { ...state, phase: 'done', index: next }
+        return { ...state, phase: 'submitting', index: next }
       return { ...state, index: next }
     }
+    case 'DONE':
+      return { ...state, phase: 'done' }
     case 'RESET':
       return init()
     default:
@@ -43,9 +45,17 @@ export default function QuizContainer({ date, player }) {
 
   useEffect(() => { load() }, [load])
 
+  // Submit result when quiz ends, then transition to done
+  useEffect(() => {
+    if (state.phase !== 'submitting') return
+    submitResult(date, state.score, state.questions.length, player?.token)
+      .catch(() => {}) // silently ignore submit errors
+      .finally(() => dispatch({ type: 'DONE' }))
+  }, [state.phase, date, state.score, state.questions.length, player])
+
   const { phase, questions, index, score, error } = state
 
-  if (phase === 'loading') {
+  if (phase === 'loading' || phase === 'submitting') {
     return (
       <div className="quiz-wrapper">
         <LoadingSpinner />
@@ -73,7 +83,13 @@ export default function QuizContainer({ date, player }) {
   if (phase === 'done') {
     return (
       <div className="quiz-wrapper">
-        <ScoreScreen score={score} total={questions.length} onPlayAgain={load} />
+        <ScoreScreen
+          score={score}
+          total={questions.length}
+          date={date}
+          player={player}
+          onPlayAgain={load}
+        />
       </div>
     )
   }

@@ -152,6 +152,12 @@ body {
   margin-top: 12px;
 }
 .btn--next:hover { background: var(--primary-h); }
+.btn--outline {
+  background: transparent;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+}
+.btn--outline:hover { background: rgba(74,111,165,.08); }
 
 /* ── Status messages ───────────────────────────────────────── */
 .status-msg {
@@ -325,6 +331,86 @@ body {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 .spinner-label { color: var(--text-muted); margin: 0; }
+
+/* ── Score screen actions row ──────────────────────────────── */
+.score-screen__actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 0;
+}
+
+/* ── Leaderboard ───────────────────────────────────────────── */
+.leaderboard {
+  margin-top: 32px;
+  text-align: left;
+  border-top: 1px solid var(--border);
+  padding-top: 24px;
+}
+.leaderboard__title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: var(--text);
+  text-align: center;
+}
+.leaderboard__tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.leaderboard__tab {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: .9rem;
+  font-weight: 500;
+  transition: background .15s, color .15s;
+}
+.leaderboard__tab--active {
+  background: var(--primary);
+  color: #fff;
+}
+.leaderboard__tab:not(.leaderboard__tab--active):hover {
+  background: rgba(74,111,165,.08);
+}
+.leaderboard__status {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: .9rem;
+  margin: 12px 0;
+}
+.leaderboard__status--error { color: var(--wrong); }
+.leaderboard__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .9rem;
+}
+.leaderboard__table th {
+  text-align: left;
+  padding: 6px 10px;
+  border-bottom: 2px solid var(--border);
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.leaderboard__table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--border);
+}
+.leaderboard__row--me td {
+  background: rgba(74,111,165,.08);
+  font-weight: 600;
+}
+.leaderboard__rank  { width: 36px; color: var(--text-muted); }
+.leaderboard__name  { }
+.leaderboard__score { text-align: right; }
 
 /* ── Mobile tweaks ─────────────────────────────────────────── */
 @media (max-width: 480px) {

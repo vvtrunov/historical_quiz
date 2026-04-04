@@ -1,18 +1,19 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import confetti from 'canvas-confetti'
+import Leaderboard from './Leaderboard'
 
-export default function ScoreScreen({ score, total, onPlayAgain }) {
+export default function ScoreScreen({ score, total, date, player, onPlayAgain }) {
+  const [showLeaderboard, setShowLeaderboard] = useState(false)
   const pct = total > 0 ? Math.round((score / total) * 100) : 0
 
   useEffect(() => {
     if (pct === 0) return
-    const particleCount = Math.round(60 + pct * 1.4)  // 60–200 particles
+    const particleCount = Math.round(60 + pct * 1.4)
     const spread = pct === 100 ? 100 : 60
 
     confetti({ particleCount, spread, origin: { y: 0.6 } })
 
     if (pct === 100) {
-      // Extra side bursts for a perfect score
       setTimeout(() => confetti({ particleCount: 60, angle: 60,  spread: 55, origin: { x: 0 } }), 250)
       setTimeout(() => confetti({ particleCount: 60, angle: 120, spread: 55, origin: { x: 1 } }), 400)
     }
@@ -35,9 +36,22 @@ export default function ScoreScreen({ score, total, onPlayAgain }) {
         <span className="score-screen__total">{total}</span>
       </p>
       <p className="score-screen__pct">{pct}%</p>
-      <button className="btn btn--primary" onClick={onPlayAgain}>
-        Play Again
-      </button>
+
+      <div className="score-screen__actions">
+        <button className="btn btn--primary" onClick={onPlayAgain}>
+          Play Again
+        </button>
+        <button
+          className="btn btn--outline"
+          onClick={() => setShowLeaderboard(v => !v)}
+        >
+          {showLeaderboard ? 'Hide Leaderboard' : 'Show Leaderboard'}
+        </button>
+      </div>
+
+      {showLeaderboard && (
+        <Leaderboard date={date} playerName={player?.name} />
+      )}
     </div>
   )
 }
