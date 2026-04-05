@@ -19,10 +19,9 @@ die()     { echo -e "${RED}✖ $*${NC}" >&2; exit 1; }
 DJANGO_PID=""
 cleanup() {
   echo ""
-  if [[ -n "$DJANGO_PID" ]]; then
-    info "Stopping Django (pid $DJANGO_PID)…"
-    kill "$DJANGO_PID" 2>/dev/null || true
-  fi
+  info "Stopping Django…"
+  [[ -n "$DJANGO_PID" ]] && kill "$DJANGO_PID" 2>/dev/null || true
+  pkill -f "manage.py runserver" 2>/dev/null || true
   info "Bye!"
 }
 trap cleanup EXIT INT TERM
@@ -66,9 +65,12 @@ else
   success "Node dependencies OK"
 fi
 
-# ── 6. Start Django in background ────────────────────────────
+# ── 6. Kill any stale Django on port 8000 ────────────────────
+pkill -f "manage.py runserver" 2>/dev/null || true
+
+# ── 7. Start Django in background ────────────────────────────
 info "Starting Django on http://127.0.0.1:8000 …"
-python "$BACKEND/manage.py" runserver 2>&1 | sed "s/^/${BOLD}[django]${NC} /" &
+python "$BACKEND/manage.py" runserver &
 DJANGO_PID=$!
 sleep 1
 if ! kill -0 "$DJANGO_PID" 2>/dev/null; then
@@ -76,7 +78,7 @@ if ! kill -0 "$DJANGO_PID" 2>/dev/null; then
 fi
 success "Django running (pid $DJANGO_PID)"
 
-# ── 7. Start Vite in foreground ───────────────────────────────
+# ── 8. Start Vite in foreground ───────────────────────────────
 echo ""
 echo -e "${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "  ${GREEN}${BOLD}Historical Quiz is starting!${NC}"
