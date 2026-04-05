@@ -45,7 +45,6 @@ export default function QuizContainer({ date, player }) {
 
   useEffect(() => { load() }, [load])
 
-  // Submit result when quiz ends, then transition to done
   useEffect(() => {
     if (state.phase !== 'submitting') return
     submitResult(date, state.score, state.questions.length, player?.token)
@@ -94,7 +93,6 @@ export default function QuizContainer({ date, player }) {
     )
   }
 
-  // phase === 'playing'
   return (
     <div className="quiz-wrapper">
       <h1 className="quiz-title">On This Day — {date}</h1>

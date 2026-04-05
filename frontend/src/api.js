@@ -12,7 +12,7 @@ export async function login(name) {
     const data = await response.json().catch(() => ({}))
     throw new Error(data.error || `Server responded with ${response.status}`)
   }
-  return response.json()  // { token, name }
+  return response.json()
 }
 
 export async function fetchQuiz(date, token) {
@@ -44,5 +44,5 @@ export async function fetchLeaderboard(scope, date) {
   if (!response.ok) {
     throw new Error(`Failed to fetch leaderboard: ${response.status}`)
   }
-  return response.json()  // { scope, entries: [...] }
+  return response.json()
 }
