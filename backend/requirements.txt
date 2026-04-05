@@ -3,3 +3,5 @@ djangorestframework==3.17.1
 django-cors-headers==4.9.0
 pandas==3.0.2
 pyarrow==23.0.1
+pylint==3.3.7
+pylint-django==2.7.0

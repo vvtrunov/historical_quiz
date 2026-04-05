@@ -21,7 +21,7 @@ def get_player_from_request(request):
     token = auth[6:].strip()
     try:
         return Player.objects.get(token=token)
-    except (Player.DoesNotExist, Exception):
+    except Player.DoesNotExist:
         return None
 
 
@@ -172,10 +172,9 @@ class LeaderboardView(View):
 
         if scope == 'daily':
             return self._daily(request)
-        elif scope == 'alltime':
-            return self._alltime(request)
-        else:
-            return JsonResponse({'error': 'scope must be daily or alltime'}, status=400)
+        if scope == 'alltime':
+            return self._alltime()
+        return JsonResponse({'error': 'scope must be daily or alltime'}, status=400)
 
     def _daily(self, request):
         date_param = request.GET.get('date', '')
@@ -200,7 +199,7 @@ class LeaderboardView(View):
         ]
         return JsonResponse({'scope': 'daily', 'date': date_param, 'entries': entries})
 
-    def _alltime(self, request):
+    def _alltime(self):
         rows = (
             QuizResult.objects
             .values('player__name')
