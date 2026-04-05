@@ -1,3 +1,7 @@
+function cleanText(text) {
+  return text.replace(/\[[^\]]*\]/g, '').trim()
+}
+
 export default function ChoiceButton({ choice, onClick, state }) {
   // state: null | 'correct' | 'wrong' | 'missed'
   const base = 'choice-btn'
@@ -5,7 +9,7 @@ export default function ChoiceButton({ choice, onClick, state }) {
 
   return (
     <button className={cls} onClick={onClick} disabled={state !== null}>
-      {choice.text}
+      {cleanText(choice.text)}
     </button>
   )
 }
