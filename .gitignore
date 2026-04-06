@@ -11,8 +11,8 @@ build/
 .eggs/
 
 # Django
-backend/db.sqlite3
-backend/*.sqlite3
+src/db.sqlite3
+src/*.sqlite3
 *.log
 local_settings.py
 media/
@@ -20,12 +20,6 @@ media/
 # Environment
 .env
 .env.*
-
-# Frontend
-frontend/node_modules/
-frontend/dist/
-frontend/.env
-frontend/.env.*
 
 # IDE
 .vscode/

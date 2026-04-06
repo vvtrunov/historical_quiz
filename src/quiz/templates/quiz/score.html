@@ -1,0 +1,37 @@
+{% extends "quiz/base.html" %}
+
+{% block title %}Score — Historical Quiz{% endblock %}
+
+{% block content %}
+<div class="quiz-wrapper">
+  <div class="score-screen">
+    <h2 class="score-screen__title">Quiz complete!</h2>
+    <p class="score-screen__message">{{ message }}</p>
+    <p class="score-screen__score score-screen__score--pop">
+      <span class="score-screen__number">{{ score }}</span>
+      <span class="score-screen__divider"> / </span>
+      <span class="score-screen__total">{{ total }}</span>
+    </p>
+    <p class="score-screen__pct">{{ pct }}%</p>
+    <div class="score-screen__actions">
+      <a href="{% url 'quiz' %}" class="btn btn--primary">Play Again</a>
+      <a href="{% url 'leaderboard' %}?scope=daily&date={{ date }}" class="btn btn--outline">Leaderboard</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+<script>
+  const pct = {{ pct }};
+  if (pct > 0) {
+    const particleCount = Math.round(60 + pct * 1.4);
+    confetti({ particleCount, spread: pct === 100 ? 100 : 60, origin: { y: 0.6 } });
+    if (pct === 100) {
+      setTimeout(() => confetti({ particleCount: 60, angle: 60,  spread: 55, origin: { x: 0 } }), 250);
+      setTimeout(() => confetti({ particleCount: 60, angle: 120, spread: 55, origin: { x: 1 } }), 400);
+    }
+  }
+</script>
+{% endblock %}

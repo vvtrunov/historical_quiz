@@ -1,0 +1,56 @@
+{% extends "quiz/base.html" %}
+
+{% block title %}Leaderboard — Historical Quiz{% endblock %}
+
+{% block content %}
+<div class="quiz-wrapper">
+  <h1 class="quiz-title">Leaderboard</h1>
+  <div class="leaderboard leaderboard--page">
+    <div class="leaderboard__tabs">
+      <a href="{% url 'leaderboard' %}?scope=daily&date={{ today }}"
+         class="leaderboard__tab {% if scope == 'daily' %}leaderboard__tab--active{% endif %}">
+        Today
+      </a>
+      <a href="{% url 'leaderboard' %}?scope=alltime"
+         class="leaderboard__tab {% if scope == 'alltime' %}leaderboard__tab--active{% endif %}">
+        All Time
+      </a>
+    </div>
+
+    {% if not entries %}
+      <p class="leaderboard__status">No results yet. Be the first!</p>
+    {% else %}
+      <table class="leaderboard__table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            {% if scope == 'daily' %}
+              <th style="text-align:right">Score</th>
+            {% else %}
+              <th style="text-align:right">Total</th>
+              <th style="text-align:right">Quizzes</th>
+            {% endif %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in entries %}
+            <tr {% if entry.name == player_name %}class="leaderboard__row--me"{% endif %}>
+              <td class="leaderboard__rank">{{ entry.rank }}</td>
+              <td class="leaderboard__name">
+                {{ entry.name }}{% if entry.name == player_name %} ★{% endif %}
+              </td>
+              {% if scope == 'daily' %}
+                <td class="leaderboard__score">{{ entry.score }} / {{ entry.total }}</td>
+              {% else %}
+                <td class="leaderboard__score">{{ entry.total_score }}</td>
+                <td class="leaderboard__score">{{ entry.quizzes_played }}</td>
+              {% endif %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

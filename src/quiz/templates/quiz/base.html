@@ -1,0 +1,31 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Historical Quiz{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'quiz/style.css' %}">
+</head>
+<body>
+  <div id="root">
+    {% if request.session.player_name %}
+    <header class="app-header">
+      <nav class="app-header__nav">
+        <a href="{% url 'quiz' %}" class="app-header__link">Quiz</a>
+        <a href="{% url 'leaderboard' %}" class="app-header__link">Leaderboard</a>
+      </nav>
+      <div class="app-header__right">
+        <span class="app-header__name">{{ request.session.player_name }}</span>
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn--logout">Logout</button>
+        </form>
+      </div>
+    </header>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </div>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

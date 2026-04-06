@@ -1,0 +1,28 @@
+{% extends "quiz/base.html" %}
+
+{% block title %}Login — Historical Quiz{% endblock %}
+
+{% block content %}
+<div class="auth-gate">
+  <div class="auth-card">
+    <h1 class="auth-card__title">Historical Quiz</h1>
+    <p class="auth-card__subtitle">Enter your name to play</p>
+    <form class="auth-card__form" method="post">
+      {% csrf_token %}
+      <input
+        class="auth-card__input"
+        type="text"
+        name="name"
+        placeholder="Your name"
+        maxlength="50"
+        value="{{ name|default:'' }}"
+        autofocus
+      >
+      <button class="btn btn--primary" type="submit">Play</button>
+    </form>
+    {% if error %}
+      <p class="auth-card__error">{{ error }}</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

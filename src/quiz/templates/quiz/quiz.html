@@ -1,0 +1,70 @@
+{% extends "quiz/base.html" %}
+{% load quiz_extras %}
+
+{% block title %}Quiz — Historical Quiz{% endblock %}
+
+{% block content %}
+<div class="quiz-wrapper">
+  {% if empty %}
+    <p class="status-msg">No events recorded for this date. Come back tomorrow!</p>
+  {% else %}
+    <h1 class="quiz-title">On This Day — {{ date }}</h1>
+    <div class="question-card">
+      <div class="question-card__header">
+        <span class="question-card__progress">Question {{ index|add:1 }} / {{ total }}</span>
+        <span class="question-card__year">{{ question.year }}</span>
+      </div>
+      <p class="question-card__prompt">
+        Which event happened on this day
+        <strong>{{ years_ago }} {{ years_ago|pluralize:"year,years" }} ago</strong>
+        ({{ question.year }})?
+      </p>
+
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="answer">
+        <div class="question-card__choices">
+          {% for choice in question.choices %}
+            {% if answered %}
+              {% if choice.id == answered.choice_id %}
+                <button class="choice-btn {% if answered.correct %}choice-btn--correct{% else %}choice-btn--wrong{% endif %}" disabled>
+                  {{ choice.text|clean_text }}
+                </button>
+              {% elif choice.correct %}
+                <button class="choice-btn choice-btn--missed" disabled>
+                  {{ choice.text|clean_text }}
+                </button>
+              {% else %}
+                <button class="choice-btn" disabled>
+                  {{ choice.text|clean_text }}
+                </button>
+              {% endif %}
+            {% else %}
+              <button type="submit" name="choice_id" value="{{ choice.id }}" class="choice-btn">
+                {{ choice.text|clean_text }}
+              </button>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </form>
+
+      {% if answered %}
+        <div class="feedback-banner feedback-banner--{% if answered.correct %}correct{% else %}wrong{% endif %}">
+          <p class="feedback-banner__message">
+            {% if answered.correct %}
+              Correct!
+            {% else %}
+              Wrong — the correct answer was: &ldquo;{{ question.description|clean_text }}&rdquo;
+            {% endif %}
+          </p>
+          <form method="post" style="margin:0">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="next">
+            <button type="submit" class="btn btn--next">Next</button>
+          </form>
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
